@@ -70,16 +70,27 @@ contract CharityDonationNFT is ERC721, Ownable {
      */
     event ProjectAddedEvent(string description, uint256 indexed projectId, uint256 timestamp);
 
-    /* Constructor to initialize the NFT with name, symbol, charity address, and base URI */
+        /* Constructor to initialize the NFT with name, symbol, charity address, and base URI */
     constructor(
         string memory _name,
         string memory _symbol,
         address _charityAddress,
         string memory _baseURI
     ) ERC721(_name, _symbol) Ownable(msg.sender) {
+        // Validate input lengths
+        require(bytes(_name).length > 0 && bytes(_name).length <= 50, "Invalid name length");
+        require(bytes(_symbol).length > 0 && bytes(_symbol).length <= 10, "Invalid symbol length");
+
+        // Validate charity address
+        require(_charityAddress != address(0), "Invalid charity address");
+
+        // Validate base URI
+        require(bytes(_baseURI).length > 0, "Invalid base URI");
+
         charityAddress = _charityAddress;
         tokenBaseURI = _baseURI;
     }
+
 
     /* Functions */
     /**
@@ -122,11 +133,18 @@ contract CharityDonationNFT is ERC721, Ownable {
      * @notice Only the contract owner can add new projects.
      */
     function addProject(string memory _description) external onlyOwner {
+        require(bytes(_description).length > 0, "Project description cannot be empty");
+        require(bytes(_description).length <= 100, "Project description is too long");
+
+        // Additional check if there's a maximum limit on the number of projects
+        require(projects.length < 100, "Exceeded maximum number of projects");
+
         projects.push(Project(_description, 0));
 
         uint256 projectId = projects.length - 1;
         emit ProjectAddedEvent(_description, projectId, block.timestamp);
     }
+
 
     /**
      * @dev Function to provide an impact report.
